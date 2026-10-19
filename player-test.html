@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ahmed Finance · الدرس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f3ea;--card:#fffdf8;--ink:#0f2a24;--muted:#5f6f69;--line:#e3dccb;--gold:#b8892e;--gold-ink:#fff;--track:#e6e0d0;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0c1714;--card:#12211c;--ink:#eef2ee;--muted:#98aaa2;--line:#23372f;--gold:#d6a84a;--gold-ink:#1a1405;--track:#26392f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Cairo","Segoe UI",Tahoma,Arial,sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px 24px;min-height:100vh}
+main{max-width:860px;margin:0 auto}
+.head{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
+.logo{width:42px;height:42px;border-radius:12px;background:var(--ink);color:var(--gold);display:grid;place-items:center;flex:none}
+.logo svg{width:24px;height:24px}
+.brand{font-weight:700;font-size:1.05rem;line-height:1.2}
+.sub{color:var(--muted);font-size:.85rem}
+h1{font-size:1.35rem;margin:0 0 12px;font-weight:700}
+.player{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 30px -18px rgba(15,42,36,.45)}
+.stage{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.clip{position:relative;overflow:hidden;width:100%;aspect-ratio:16/9}
+.clip iframe{position:absolute;left:0;border:0}
+.cover{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;background:rgba(5,12,10,.93);transition:opacity .25s;pointer-events:none}
+.cover.poster{background:#000 center/cover no-repeat}
+.cover.poster::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,20,16,.25),rgba(8,20,16,.8))}
+.cover.off{opacity:0}
+.big{position:relative;width:72px;height:72px;border-radius:50%;background:var(--gold);color:var(--gold-ink);display:grid;place-items:center;box-shadow:0 0 0 8px rgba(214,168,74,.25)}
+.big svg{width:30px;height:30px;transform:translateX(-2px)}
+.meta{position:absolute;right:16px;left:16px;bottom:14px;color:#fff}
+.meta b{display:block;font-size:1.05rem}
+.meta span{font-size:.85rem;opacity:.8}
+.cover:not(.poster) .meta{display:none}
+.shield{position:absolute;inset:0;z-index:2;cursor:pointer}
+.bar{display:flex;align-items:center;gap:6px;padding:8px 12px 12px;direction:ltr;flex-wrap:wrap}
+.bar button{font:inherit;background:transparent;color:var(--ink);border:0;border-radius:10px;width:40px;height:40px;display:grid;place-items:center;cursor:pointer}
+.bar button:hover{background:var(--track)}
+.bar button svg{width:22px;height:22px;fill:currentColor}
+.bar button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.bar .pill{width:auto;padding:0 12px;font-weight:600;font-size:.85rem;background:var(--track)}
+#seek{flex:1 1 100%;order:-1;margin:6px 0 4px}
+input[type=range]{-webkit-appearance:none;appearance:none;height:22px;background:transparent;cursor:pointer;--p:0%}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:5px;background:linear-gradient(90deg,var(--gold) var(--p),var(--track) var(--p))}
+input[type=range]::-moz-range-track{height:5px;border-radius:5px;background:var(--track)}
+input[type=range]::-moz-range-progress{height:5px;border-radius:5px;background:var(--gold)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid var(--card);margin-top:-5.5px}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid var(--card)}
+#vol{width:80px}
+.time{font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--muted);margin:0 auto 0 6px}
+@media (max-width:520px){#vol{display:none}}
+.player:fullscreen{border:0;border-radius:0;background:#000;box-shadow:none}
+.player:fullscreen .stage{flex:1;min-height:0;aspect-ratio:auto}
+.player:fullscreen .bar{position:absolute;z-index:3;left:0;right:0;bottom:0;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.85));transition:opacity .25s}
+.player:fullscreen .bar button{color:#fff}
+.player:fullscreen .bar button:hover{background:rgba(255,255,255,.15)}
+.player:fullscreen .bar .pill{background:rgba(255,255,255,.18)}
+.player:fullscreen .time{color:#dfe8e3}
+.player:fullscreen.hide-ui .bar{opacity:0;pointer-events:none}
+.player:fullscreen.hide-ui .shield{cursor:none}
+</style>
+</head>
+<body>
+<main>
+<div class="head">
+  <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
+  <div><div class="brand">Ahmed Finance</div><div class="sub">منصة التعلّم</div></div>
+</div>
+<h1 id="lessonTitle">الدرس الأول</h1>
+<div class="player" id="player">
+  <div class="stage" id="stage">
+    <div class="clip" id="clip"><div id="yt"></div></div>
+    <div class="cover poster" id="cover">
+      <div class="big"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+      <div class="meta"><b id="coverTitle"></b><span>اضغط للتشغيل</span></div>
+    </div>
+    <div class="shield" id="shield"></div>
+  </div>
+  <div class="bar" id="bar">
+    <input type="range" id="seek" min="0" max="1000" value="0" aria-label="التقدّم">
+    <button id="play" type="button" aria-label="تشغيل"></button>
+    <button id="mute" type="button" aria-label="الصوت"></button>
+    <input type="range" id="vol" min="0" max="100" value="100" aria-label="مستوى الصوت">
+    <span class="time" id="time">0:00 / 0:00</span>
+    <button id="speed" type="button" class="pill" aria-label="السرعة">1x</button>
+    <button id="full" type="button" aria-label="شاشة كاملة"></button>
+  </div>
+</div>
+</main>
+<script>
+var VIDEO_ID = "A7dVNM7Dn6w";
+var LESSON_TITLE = "الدرس الأول";
+var CROP = 96;
+var SPEEDS = [1, 1.25, 1.5, 2, 0.75], speedIdx = 0;
+var player, timer, idle, ready = false, playedOnce = false, playing = false;
+var $ = function(id){ return document.getElementById(id); };
+var ICON = {
+  play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>',
+  vol:'<svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3z"/><path d="M15.5 8.5a5 5 0 010 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  mute:'<svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3z"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  full:'<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+function fmt(s){ s = Math.floor(s||0); var m = Math.floor(s/60), r = s%60; return m + ":" + (r<10?"0":"") + r; }
+function isFS(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function setP(el){ el.style.setProperty("--p", (el.value/el.max*100) + "%"); }
+
+$("lessonTitle").textContent = LESSON_TITLE;
+$("coverTitle").textContent = LESSON_TITLE;
+$("play").innerHTML = ICON.play;
+$("mute").innerHTML = ICON.vol;
+$("full").innerHTML = ICON.full;
+$("cover").style.backgroundImage = "url(https://i.ytimg.com/vi/" + VIDEO_ID + "/hqdefault.jpg)";
+setP($("seek")); setP($("vol"));
+
+function layout(){
+  var st = $("stage"), w = st.clientWidth, h = st.clientHeight;
+  var vw = Math.min(w, h*16/9), vh = vw*9/16;
+  $("clip").style.width = vw + "px";
+  $("clip").style.height = vh + "px";
+  var f = document.querySelector("#clip iframe");
+  if (f){ f.style.width = vw + "px"; f.style.height = (vh + 2*CROP) + "px"; f.style.top = (-CROP) + "px"; }
+}
+window.addEventListener("resize", layout);
+
+function onYouTubeIframeAPIReady(){
+  player = new YT.Player("yt", {
+    host: "https://www.youtube-nocookie.com",
+    videoId: VIDEO_ID,
+    playerVars: { controls:0, disablekb:1, modestbranding:1, rel:0, iv_load_policy:3, playsinline:1, fs:0, cc_load_policy:0 },
+    events: { onReady: function(){ ready = true; layout(); tick(); }, onStateChange: onState }
+  });
+  layout();
+}
+function onState(e){
+  var s = e.data;
+  if (s === YT.PlayerState.BUFFERING) return;
+  playing = s === YT.PlayerState.PLAYING;
+  $("play").innerHTML = playing ? ICON.pause : ICON.play;
+  var cover = $("cover");
+  if (playing){ playedOnce = true; cover.classList.add("off"); }
+  else { cover.classList.remove("off"); cover.classList.toggle("poster", !playedOnce); }
+  clearInterval(timer);
+  if (playing) timer = setInterval(tick, 250);
+  tick(); showUI();
+}
+function tick(){
+  if (!ready) return;
+  var d = player.getDuration() || 0, c = player.getCurrentTime() || 0;
+  if (d){ $("seek").value = Math.round(c/d*1000); setP($("seek")); }
+  $("time").textContent = fmt(c) + " / " + fmt(d);
+}
+function toggle(){ if (ready) playing ? player.pauseVideo() : player.playVideo(); }
+function showUI(){
+  var p = $("player");
+  p.classList.remove("hide-ui");
+  clearTimeout(idle);
+  if (isFS() && playing) idle = setTimeout(function(){ p.classList.add("hide-ui"); }, 3000);
+}
+
+$("play").onclick = function(){ toggle(); showUI(); };
+$("shield").onclick = function(){
+  if (isFS() && $("player").classList.contains("hide-ui")){ showUI(); return; }
+  toggle(); showUI();
+};
+$("bar").addEventListener("pointerdown", showUI);
+$("seek").oninput = function(){
+  setP(this);
+  if (ready) player.seekTo(this.value/1000 * player.getDuration(), true);
+};
+$("vol").oninput = function(){
+  setP(this);
+  if (!ready) return;
+  player.setVolume(+this.value); player.unMute();
+  $("mute").innerHTML = this.value == 0 ? ICON.mute : ICON.vol;
+};
+$("mute").onclick = function(){
+  if (!ready) return;
+  if (player.isMuted()){ player.unMute(); this.innerHTML = ICON.vol; }
+  else { player.mute(); this.innerHTML = ICON.mute; }
+};
+$("speed").onclick = function(){
+  speedIdx = (speedIdx + 1) % SPEEDS.length;
+  this.textContent = SPEEDS[speedIdx] + "x";
+  if (ready) player.setPlaybackRate(SPEEDS[speedIdx]);
+};
+$("full").onclick = function(){
+  var el = $("player");
+  if (isFS()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  else { var req = el.requestFullscreen || el.webkitRequestFullscreen; if (req) req.call(el); }
+};
+function onFS(){
+  layout(); showUI();
+  try {
+    if (isFS()) screen.orientation.lock("landscape").catch(function(){});
+    else screen.orientation.unlock();
+  } catch(e){}
+}
+document.addEventListener("fullscreenchange", onFS);
+document.addEventListener("webkitfullscreenchange", onFS);
+$("stage").addEventListener("contextmenu", function(e){ e.preventDefault(); });
+document.addEventListener("keydown", function(e){
+  if (e.code === "Space" && e.target.tagName !== "BUTTON"){ e.preventDefault(); toggle(); showUI(); }
+});
+
+var s = document.createElement("script");
+s.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(s);
+</script>
+</body>
+</html>

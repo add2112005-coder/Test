@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تجربة المشغّل المحمي</title>
+<style>
+:root{--bg:#eef1f5;--fg:#14202e;--card:#fff;--line:#d5dce6;--accent:#1d5fd1;--muted:#5b6b7e;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0f151d;--fg:#e8edf4;--card:#18212c;--line:#2b3746;--accent:#6aa3ff;--muted:#93a3b8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Segoe UI",Tahoma,Arial,sans-serif;padding:16px;min-height:100vh}
+main{max-width:860px;margin:0 auto}
+h1{font-size:1.2rem;margin:8px 0 14px}
+.player{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.stage{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.clip{position:relative;overflow:hidden;width:100%;aspect-ratio:16/9}
+.clip iframe{position:absolute;left:0;border:0}
+.cover{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.94);transition:opacity .25s;pointer-events:none}
+.cover.poster{background:#000 center/cover no-repeat}
+.cover.poster::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.cover.off{opacity:0}
+.cover i{position:relative;width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.92);display:block}
+.cover i::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-35%,-50%);border-left:22px solid #111;border-top:14px solid transparent;border-bottom:14px solid transparent}
+.shield{position:absolute;inset:0;z-index:2;cursor:pointer;background:transparent}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px;direction:ltr}
+.bar button,.bar select{font:inherit;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+.bar button:focus-visible,.bar select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#seek{flex:1 1 100%;order:-1;accent-color:var(--accent)}
+#vol{width:90px;accent-color:var(--accent)}
+.time{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.9rem;margin-inline-end:auto}
+.note{color:var(--muted);font-size:.9rem;margin-top:12px;line-height:1.7}
+.player:fullscreen{border:0;border-radius:0;background:#000}
+.player:fullscreen .stage{flex:1;min-height:0;aspect-ratio:auto}
+.player:fullscreen .bar{position:absolute;z-index:3;left:0;right:0;bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.8));transition:opacity .25s}
+.player:fullscreen .bar .time{color:#dfe6ef}
+.player:fullscreen.hide-ui .bar{opacity:0;pointer-events:none}
+.player:fullscreen.hide-ui .shield{cursor:none}
+</style>
+</head>
+<body>
+<main>
+<h1>تجربة المشغّل المحمي</h1>
+<div class="player" id="player">
+  <div class="stage" id="stage">
+    <div class="clip" id="clip"><div id="yt"></div></div>
+    <div class="cover poster" id="cover"><i></i></div>
+    <div class="shield" id="shield"></div>
+  </div>
+  <div class="bar" id="bar">
+    <input type="range" id="seek" min="0" max="1000" value="0" aria-label="التقدّم">
+    <button id="play" type="button">▶ تشغيل</button>
+    <button id="mute" type="button">🔊</button>
+    <input type="range" id="vol" min="0" max="100" value="100" aria-label="الصوت">
+    <select id="speed" aria-label="السرعة">
+      <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option><option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option><option value="2">2x</option>
+    </select>
+    <button id="full" type="button">⛶</button>
+    <span class="time" id="time">0:00 / 0:00</span>
+  </div>
+</div>
+<p class="note">في وضع الشاشة الكاملة الأزرار بتختفي بعد 3 ثواني، وتظهر تاني بلمسة على الفيديو.</p>
+</main>
+<script>
+var VIDEO_ID = "A7dVNM7Dn6w";
+var CROP = 96;               /* ارتفاع الجزء المقصوص من فوق ومن تحت لإخفاء عناصر يوتيوب */
+var player, timer, idle, ready = false, playedOnce = false, playing = false;
+var $ = function(id){ return document.getElementById(id); };
+function fmt(s){ s = Math.floor(s||0); var m = Math.floor(s/60), r = s%60; return m + ":" + (r<10?"0":"") + r; }
+function isFS(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+
+$("cover").style.backgroundImage = "url(https://i.ytimg.com/vi/" + VIDEO_ID + "/hqdefault.jpg)";
+
+function layout(){
+  var st = $("stage"), w = st.clientWidth, h = st.clientHeight;
+  var vw = Math.min(w, h*16/9), vh = vw*9/16;
+  $("clip").style.width = vw + "px";
+  $("clip").style.height = vh + "px";
+  var f = document.querySelector("#clip iframe");
+  if (f){
+    f.style.width = vw + "px";
+    f.style.height = (vh + 2*CROP) + "px";
+    f.style.top = (-CROP) + "px";
+  }
+}
+window.addEventListener("resize", layout);
+
+function onYouTubeIframeAPIReady(){
+  player = new YT.Player("yt", {
+    host: "https://www.youtube-nocookie.com",
+    videoId: VIDEO_ID,
+    playerVars: { controls:0, disablekb:1, modestbranding:1, rel:0, iv_load_policy:3, playsinline:1, fs:0, cc_load_policy:0 },
+    events: { onReady: function(){ ready = true; layout(); tick(); }, onStateChange: onState }
+  });
+  layout();
+}
+function onState(e){
+  var s = e.data;
+  if (s === YT.PlayerState.BUFFERING) return;
+  playing = s === YT.PlayerState.PLAYING;
+  $("play").textContent = playing ? "⏸ إيقاف" : "▶ تشغيل";
+  var cover = $("cover");
+  if (playing){
+    playedOnce = true;
+    cover.classList.add("off");
+  } else {
+    cover.classList.remove("off");
+    cover.classList.toggle("poster", !playedOnce);
+  }
+  clearInterval(timer);
+  if (playing) timer = setInterval(tick, 250);
+  tick(); showUI();
+}
+function tick(){
+  if (!ready) return;
+  var d = player.getDuration() || 0, c = player.getCurrentTime() || 0;
+  if (d) $("seek").value = Math.round(c/d*1000);
+  $("time").textContent = fmt(c) + " / " + fmt(d);
+}
+function toggle(){
+  if (!ready) return;
+  playing ? player.pauseVideo() : player.playVideo();
+}
+function showUI(){
+  var p = $("player");
+  p.classList.remove("hide-ui");
+  clearTimeout(idle);
+  if (isFS() && playing) idle = setTimeout(function(){ p.classList.add("hide-ui"); }, 3000);
+}
+
+$("play").onclick = function(){ toggle(); showUI(); };
+$("shield").onclick = function(){
+  if (isFS() && $("player").classList.contains("hide-ui")){ showUI(); return; }
+  toggle(); showUI();
+};
+$("bar").addEventListener("pointerdown", showUI);
+$("seek").oninput = function(){
+  if (!ready) return;
+  player.seekTo(this.value/1000 * player.getDuration(), true);
+};
+$("vol").oninput = function(){
+  if (!ready) return;
+  player.setVolume(+this.value); player.unMute();
+  $("mute").textContent = this.value == 0 ? "🔇" : "🔊";
+};
+$("mute").onclick = function(){
+  if (!ready) return;
+  if (player.isMuted()){ player.unMute(); this.textContent = "🔊"; }
+  else { player.mute(); this.textContent = "🔇"; }
+};
+$("speed").onchange = function(){ if (ready) player.setPlaybackRate(+this.value); };
+$("full").onclick = function(){
+  var el = $("player");
+  if (isFS()){
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  } else {
+    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) req.call(el);
+  }
+};
+function onFS(){
+  layout();
+  showUI();
+  try {
+    if (isFS()) screen.orientation.lock("landscape").catch(function(){});
+    else screen.orientation.unlock();
+  } catch(e){}
+}
+document.addEventListener("fullscreenchange", onFS);
+document.addEventListener("webkitfullscreenchange", onFS);
+
+$("stage").addEventListener("contextmenu", function(e){ e.preventDefault(); });
+document.addEventListener("keydown", function(e){
+  if (e.code === "Space" && e.target.tagName !== "BUTTON" && e.target.tagName !== "SELECT"){ e.preventDefault(); toggle(); showUI(); }
+});
+
+var s = document.createElement("script");
+s.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(s);
+</script>
+</body>
+</html>

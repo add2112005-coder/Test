@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة منصة الدروس</title>
+<style>
+:root{--navy:#18234b;--orange:#f07b32;--bg:#f3f4f8;--muted:#747b91;--line:#e5e7ef;--white:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#202541;font-family:Tahoma,Arial,sans-serif}
+.topbar{height:66px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--navy)}
+.logo{width:38px;height:38px;border-radius:12px;background:var(--navy);color:white;display:grid;place-items:center;font-size:18px}
+.top-actions{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#e8eaf3;color:var(--navy);display:grid;place-items:center;font-weight:bold}
+.layout{max-width:1400px;margin:24px auto;padding:0 22px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px}
+.main{min-width:0}
+.breadcrumb{font-size:13px;color:var(--muted);margin:4px 0 16px}
+h1{font-size:25px;margin:0 0 8px;color:var(--navy)}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:20px}
+.player-card{background:#fff;padding:14px;border:1px solid var(--line);border-radius:18px;box-shadow:0 6px 24px #2025410a}
+.player{position:relative;aspect-ratio:16/9;min-height:250px;background:linear-gradient(145deg,#12182e,#090b14);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff}
+.grid-bg{position:absolute;inset:0;background-image:radial-gradient(#ffffff17 1px,transparent 1px);background-size:18px 18px}
+.mock-slide{position:relative;width:83%;height:76%;background:#fbfbfd;color:#172143;padding:clamp(15px,3vw,36px);box-shadow:0 10px 40px #0005;display:flex;flex-direction:column;justify-content:center}
+.kicker{font-size:clamp(9px,1vw,12px);letter-spacing:2px;color:#d6a84d;font-weight:bold;margin-bottom:12px}
+.slide-title{font-size:clamp(22px,3.2vw,42px);font-weight:800;line-height:1.15;max-width:560px}
+.slide-sub{font-size:clamp(10px,1.2vw,15px);color:#687087;margin-top:12px}
+.chart{height:60px;margin-top:18px;border-bottom:1px solid #d9dce5;position:relative;overflow:hidden}
+.chart:before{content:"";position:absolute;left:5%;right:8%;bottom:8px;height:3px;background:var(--orange);transform:rotate(-12deg);transform-origin:left}
+.chart:after{content:"";position:absolute;left:8%;right:10%;bottom:15px;height:1px;background:#cfd4e1}
+.play{position:absolute;z-index:2;width:70px;height:70px;border-radius:50%;background:var(--orange);border:0;color:white;font-size:27px;box-shadow:0 5px 24px #0005;cursor:pointer;display:grid;place-items:center;padding-right:3px}
+.controls{position:absolute;bottom:0;left:0;right:0;padding:40px 18px 12px;background:linear-gradient(transparent,#000b);display:flex;align-items:center;gap:12px;font-size:12px;color:#fff}
+.progress{height:4px;background:#858895;border-radius:9px;flex:1;overflow:hidden}
+.progress span{display:block;width:42%;height:100%;background:var(--orange)}
+.player-note{display:flex;align-items:center;gap:8px;margin-top:12px;color:var(--muted);font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:#38a879}
+.lesson-actions{display:flex;justify-content:space-between;gap:12px;margin-top:16px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--navy);padding:11px 16px;border-radius:999px;font-weight:bold;cursor:pointer}
+.btn.primary{background:var(--orange);color:white;border-color:var(--orange)}
+.below{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.info{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+.info h3{margin:0 0 10px;color:var(--navy);font-size:16px}
+.info p{margin:0;color:var(--muted);font-size:13px;line-height:1.8}
+.sidebar{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;height:max-content}
+.course-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}
+.course-head strong{font-size:16px;color:var(--navy)}
+.pill{background:#fff2e8;color:#b95b1b;padding:6px 9px;border-radius:99px;font-size:11px;font-weight:bold}
+.course-progress{height:6px;background:#eceef4;border-radius:99px;overflow:hidden;margin:12px 0 20px}
+.course-progress span{display:block;width:32%;height:100%;background:var(--orange)}
+.module{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.module-title{padding:13px 12px;font-weight:bold;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.lesson-row{display:flex;align-items:center;gap:10px;padding:12px;border-top:1px solid var(--line);font-size:12px;color:#555e77;cursor:pointer}
+.lesson-row.active{background:#fff7f1;color:#a74c13;font-weight:bold;border-right:3px solid var(--orange)}
+.lesson-icon{width:26px;height:26px;border-radius:8px;background:#f0f1f6;display:grid;place-items:center;flex-shrink:0}
+.lesson-meta{display:block;font-size:10px;color:#8a90a2;margin-top:4px;font-weight:normal}
+.demo-panel{margin-top:16px;background:#f7f8fc;border:1px dashed #cbd0e0;border-radius:13px;padding:14px}
+.demo-panel strong{font-size:13px;display:block;margin-bottom:8px}
+.demo-panel p{font-size:11px;color:var(--muted);line-height:1.7;margin:0 0 10px}
+.demo-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.demo-buttons button{flex:1;min-width:100px;border:1px solid #dfe2ec;background:#fff;border-radius:9px;padding:9px 7px;font-size:11px;cursor:pointer;color:var(--navy)}
+.notice{display:none;margin-top:12px;padding:12px;border-radius:10px;font-size:12px;line-height:1.7}
+.notice.ok{display:block;background:#eaf8f0;color:#1d7048}
+.notice.no{display:block;background:#fff0ee;color:#a53b32}
+.footer{max-width:1400px;margin:0 auto;padding:0 22px 24px;color:#858b9c;font-size:11px}
+@media(max-width:900px){.layout{grid-template-columns:1fr;padding:0 14px;margin-top:16px}.sidebar{order:2}.topbar{padding:0 14px}.below{grid-template-columns:1fr}.player{min-height:210px}.slide-title{font-size:clamp(20px,5vw,34px)}}
+@media(max-width:480px){h1{font-size:21px}.top-actions .welcome{display:none}.player-card{padding:8px}.mock-slide{width:88%;height:72%;padding:14px}.play{width:58px;height:58px}.lesson-actions .btn{padding:10px 12px;font-size:12px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo">▶</div><span>أكاديمية التعلّم</span></div>
+  <div class="top-actions"><span class="welcome">مساحة الطالب</span><span>●</span><div class="avatar">أح</div></div>
+</header>
+<div class="layout">
+  <main class="main">
+    <div class="breadcrumb">كورساتي　›　النمذجة المالية　›　مقدمة النمذجة المالية</div>
+    <h1>مقدمة إلى النمذجة المالية</h1>
+    <div class="subtitle">الوحدة الأولى · الدرس 1 من 8 · مدة الدرس 18 دقيقة</div>
+    <section class="player-card">
+      <div class="player" id="player">
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/A7dVNM7Dn6w"
+          title="معاينة فيديو الدرس"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+          style="position:absolute;inset:0;width:100%;height:100%;border:0">
+        </iframe>
+      </div>
+      <div class="player-note"><span class="dot"></span><span>الفيديو الذي أرسلته مضمّن داخل صفحة الدرس</span></div>
+      <div class="lesson-actions">
+        <button class="btn" onclick="alert('هذه معاينة واجهة فقط')">→ الدرس التالي</button>
+        <button class="btn primary" onclick="alert('تم وضع علامة الإكمال في النموذج التجريبي')">✓ وضع علامة مكتمل</button>
+      </div>
+    </section>
+    <div class="below">
+      <section class="info"><h3>عن الدرس</h3><p>تعرّف على أساسيات بناء النموذج المالي، وتنظيم الافتراضات، وربط القوائم المالية بطريقة عملية.</p></section>
+      <section class="info"><h3>ملاحظات الدرس</h3><p>يمكن لاحقًا إضافة ملاحظات الطالب، والمرفقات، والاختبارات القصيرة من نفس صفحة الدرس.</p></section>
+    </div>
+  </main>
+  <aside class="sidebar">
+    <div class="course-head"><strong>محتوى الكورس</strong><span class="pill">32% مكتمل</span></div>
+    <div style="font-size:12px;color:#7b8296">التقدم في الكورس</div><div class="course-progress"><span></span></div>
+    <div class="module"><div class="module-title"><span>الوحدة الأولى: المقدمة</span><span>⌄</span></div>
+      <div class="lesson-row active"><div class="lesson-icon">▶</div><div>مقدمة إلى النمذجة المالية<span class="lesson-meta">فيديو · 18:24</span></div></div>
+      <div class="lesson-row"><div class="lesson-icon">▶</div><div>تنظيم الافتراضات<span class="lesson-meta">فيديو · 14:10</span></div></div>
+      <div class="lesson-row"><div class="lesson-icon">◉</div><div>اختبار الوحدة الأولى<span class="lesson-meta">اختبار · 5 أسئلة</span></div></div>
+    </div>
+    <div class="module"><div class="module-title"><span>الوحدة الثانية: القوائم المالية</span><span>⌄</span></div>
+      <div class="lesson-row"><div class="lesson-icon">▣</div><div>قائمة الدخل والميزانية<span class="lesson-meta">فيديو · 22:05</span></div></div>
+      <div class="lesson-row"><div class="lesson-icon">▣</div><div>قائمة التدفقات النقدية<span class="lesson-meta">فيديو · 19:42</span></div></div>
+    </div>
+    <div class="demo-panel">
+      <strong>تجربة صلاحية الطالب</strong>
+      <p>الأزرار التالية تحاكي فكرة التحقق من الاشتراك فقط، وليست نظام دخول حقيقيًا.</p>
+      <div class="demo-buttons">
+        <button onclick="setAccess(true)">طالب مشترك</button>
+        <button onclick="setAccess(false)">طالب غير مشترك</button>
+      </div>
+      <div id="notice" class="notice"></div>
+    </div>
+  </aside>
+</div>
+<div class="footer">الفيديو مضمّن من يوتيوب. أزرار صلاحية الطالب محاكاة فقط، وليست نظام تسجيل دخول أو حماية حقيقيًا.</div>
+<script>
+const playBtn=document.getElementById('playBtn');
+// الفيديو الحقيقي مضمّن مباشرة داخل المشغّل لهذه المعاينة.
+function setAccess(allowed){
+  const n=document.getElementById('notice');
+  n.className='notice '+(allowed?'ok':'no');
+  n.textContent=allowed
+    ?'تم التحقق في هذه المحاكاة: الطالب مشترك. في النظام الحقيقي، يتحقق الـ Backend من الجلسة والاشتراك قبل إرسال بيانات الدرس.'
+    :'تم رفض الوصول في هذه المحاكاة: الطالب غير مشترك. في النظام الحقيقي، يجب أن يرجع الخادم 403 ولا يرسل بيانات الدرس.';
+}
+</script>
+</body>
+</html>
